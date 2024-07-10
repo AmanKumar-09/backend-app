@@ -8,7 +8,7 @@ const connectDB = async () =>{
         
 
    } catch(error){
-       console.error("DB got an error aman ",error);
+       console.error("DB got an error aman ");
        process.exit(1)
    }
 }
