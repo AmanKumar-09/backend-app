@@ -1,15 +1,16 @@
 
-const asyncHandler = async (requestHandler) => {
-    (req , res, next)=>{
-        Promise.resolve(requestHandler).catch((err) =>
-        next(err))
+const asyncHandler =  (requestHandler) => {
+      return (req , res, next)=>{
+        Promise.resolve(requestHandler(req, res ,next)).catch
+        ((err) => next(err))
     }
 }
 
 export {asyncHandler}
 
-/*  try catch approach
-const asyncHandler1 = (fun) => async(req, res, next) =>{
+//  try catch approach
+/*
+const asyncHandler = (fun) => async(req, res, next) =>{
     try {
         await fun(req, res , next)
     } catch(error){
