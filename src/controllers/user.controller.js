@@ -246,9 +246,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
-    .json(200, req.status, "current user fetched successfully");
+    .json(new ApiResponse(200, req.user, "User fetched successfully"));
 });
-
 
 // update account details
 const updateAccountDetails = asyncHandler(async (req, res) => {
@@ -307,37 +306,36 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "Avatar updated successfully"));
 });
 
-// update coverImage 
-const updateUserCoverImage = asyncHandler(async(req, res) =>{
-  const coverImageLocalPath = req.file.path
+// update coverImage
+const updateUserCoverImage = asyncHandler(async (req, res) => {
+  const coverImageLocalPath = req.file.path;
 
-  if(!coverImageLocalPath){
-    throw new ApiError(400, "coverImage file is missing ")
+  if (!coverImageLocalPath) {
+    throw new ApiError(400, "coverImage file is missing ");
   }
 
-  const coverImage = await uploadOnCloudinary(coverImageLocalPath)
+  const coverImage = await uploadOnCloudinary(coverImageLocalPath);
 
-  if(!coverImage.url){
-    throw new ApiError(400, "Error while updating on cloudinary ")
+  if (!coverImage.url) {
+    throw new ApiError(400, "Error while updating on cloudinary ");
   }
-  
+
   const user = User.findByIdAndUpdate(
     req.user._id,
     {
       $set: {
-        coverImage : coverImage.url
-      }
+        coverImage: coverImage.url,
+      },
     },
     {
-      new: true
+      new: true,
     }
-  ).select("-password")
+  ).select("-password");
 
   return res
-  .status(200)
-  .json( new ApiResponse(200, user , "CoverImage updated successfully"))
-
-})
+    .status(200)
+    .json(new ApiResponse(200, user, "CoverImage updated successfully"));
+});
 
 export {
   registerUser,
@@ -348,5 +346,5 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
-  updateUserCoverImage
+  updateUserCoverImage,
 };
