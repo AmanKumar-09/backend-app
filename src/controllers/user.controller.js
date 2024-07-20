@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
-import { mongo } from "mongoose";
+import mongoose from "mongoose";
 
 // generate refresh and fresh token
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -340,6 +340,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, user, "CoverImage updated successfully"));
 });
 
+// getUserChannelProfile
 const getUserChannelProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
@@ -353,12 +354,13 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         username: username?.toLowerCase(),
       },
     },
-    /// yha tak sare documents ek pipeline jagah ekkathe ho cheke hai
+
+    /// yha tak sare documents / pipeline ek jagah ekkathe ho cheke hai
     {
       $lookup: {
-        from: "subscriptions",
-        localField: "_id", // kaha se dekhna hai
-        foreignField: "channel", // kis base pe dekhna hai
+        from: " subscriptions",
+        localField: "_id",
+        foreignField: "channel",
         as: "subscribers",
       },
     },
@@ -371,7 +373,6 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         as: "subscribedTo",
       },
     },
-    // add fields in the user
 
     {
       //adding count of subscriber and subscribed to
@@ -384,15 +385,15 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
         },
         isSubscribed: {
           $cond: {
-            if: { $in: [req.user?._id, "subscribers.subscriber"] },
+            if: { $in: [req.user?._id, "$subscribers.subscriber"] },
             then: true,
             else: false,
           },
         },
       },
     },
+
     {
-      // sari values nhi dena but only selected values hi dena jo bhi inhe demand kar rha ho
       $project: {
         fullName: 1,
         username: 1,
@@ -405,19 +406,23 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
       },
     },
   ]);
-  if (!channel?.length) {
-    throw new ApiError(404, "channel does not exist ");
+
+  {
+    if (!channel?.length) {
+      throw new ApiError(404, "channel does not exist ");
+    }
   }
-  console.log(channel);
 
   return res
     .status(200)
-    .json(new ApiResponse(200, channel[0], "channel fetched successfully "));
+    .json(
+      new ApiResponse(200, channel[0], " user channel fetched successfully ")
+    );
 });
 
 // get watched history
 const getWatchedHistory = asyncHandler(async (req, res) => {
-  const user = User.aggregate([
+  const user = await User.aggregate([
     {
       $match: {
         _id: new mongoose.Types.ObjectId(req.user._id),
@@ -467,8 +472,11 @@ const getWatchedHistory = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(
-      new ApiResponse(200, user[0].watchHistory),
-      "watch history fetched successfully"
+      new ApiResponse(
+        200,
+        user[0].watchHistory,
+        "watch history fetched successfully"
+      )
     );
 });
 
@@ -483,5 +491,5 @@ export {
   updateUserAvatar,
   updateUserCoverImage,
   getUserChannelProfile,
-  getWatchedHistory
+  getWatchedHistory,
 };
